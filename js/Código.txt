@@ -1,0 +1,249 @@
+document.addEventListener('keydown',movimientos);
+
+const DIMENSION = 80;
+const DIMENSION_MATRIZ =6;
+const LEFT=37;
+const UP=38;
+const RIGHT=39;
+const DOWN=40;
+const ENTER=13;
+const CANTIDAD_MAX=20;
+const CANTIDAD_MIN=1;
+
+var fondo = document.getElementById('fondo');
+var lapiz = fondo.getContext('2d');
+var x = 0;
+var y = 0;
+var numeroIntento=3;
+var matriz  = new Array(DIMENSION_MATRIZ); 
+
+
+
+
+var tecla={
+    LEFT:LEFT,
+    UP:UP,
+    RIGHT:RIGHT,
+    DOWN:DOWN,
+    ENTER:ENTER,
+}
+
+var tile = {
+    url: './img/tile.png',
+    imagen: Image,
+    cargaOk: false
+};
+
+var cerdo = {
+    url : './img/cerdo.png',
+    imagen : Image,
+    cargaOk : false
+};
+
+var vaca = {
+    url: './img/vaca.png',
+    imagen : Image,
+    cargaOk : false
+};
+
+var llave = {
+    url: './img/llave.png',
+    imagen : Image,
+    cargaOk : false
+};
+
+iniciarMatriz();
+generarAnimales('v');
+generarAnimales('c');
+//generarAnimalesNoEnvenenado('cNO');
+//generarAnimalesNoEnvenenado('vNO');
+
+tile.imagen = new Image();
+tile.imagen.src = tile.url;
+
+cerdo.imagen = new Image();
+cerdo.imagen.src = cerdo.url;
+
+vaca.imagen = new Image();
+vaca.imagen.src = vaca.url;
+
+llave.imagen = new Image();
+llave.imagen.src = llave.url;
+
+
+tile.imagen.addEventListener('load',function(){
+    tile.cargaOk = true;
+    dibujar();
+});
+
+cerdo.imagen.addEventListener('load',function(){
+    cerdo.cargaOk = true;
+    dibujar();
+});
+
+llave.imagen.addEventListener('load',function(){
+    llave.cargaOk = true;
+    x=aleatorio(5,0);
+    y=aleatorio(5,0);
+    dibujar();
+});
+
+function iniciarMatriz(){
+    for (let i = 0; i< matriz.length; i++) {
+        matriz[i] = new Array(DIMENSION_MATRIZ); 
+        for (let j = 0; j < matriz.length; j++) {
+            matriz[i][j]='x';            
+        }       
+    }
+}
+
+function generarAnimales(tipo)
+{
+    var numero = aleatorio(CANTIDAD_MAX,CANTIDAD_MIN);
+    var noContaminada = aleatorio(numero,CANTIDAD_MIN);
+    for (var i = 1; i <= numero; i++) {
+        if (i == noContaminada) {
+            asignar(tipo,true);
+        }
+        else{
+            asignar(tipo,false);   
+        }
+             
+    }
+}
+
+function generarAnimalesNoEnvenenado(tipo)
+{
+    var numero = 1;
+    for (var i = 1; i <= numero; i++) {
+        asignar(tipo);        
+    }
+}
+function asignar(tipo, noContaminada){
+    var resultado = false;
+    do{
+        var fila = aleatorio(5,0);
+        var columna = aleatorio(5,0);
+        if (matriz[fila][columna]=='x') {
+            if(noContaminada==true){
+                if (tipo == 'v') {
+                    matriz[fila][columna]='vb';
+                }
+                else{
+                    matriz[fila][columna]='cb';
+                }
+            }
+            else{
+                matriz[fila][columna]=tipo;
+            }
+            resultado = true;
+        }
+    }
+    while(!resultado);
+    return resultado;
+}
+
+
+function dibujar(){
+    if(tile.cargaOk==true){
+        lapiz.drawImage(tile.imagen,0,0);
+        dibujarMatriz();
+
+        dibujarLlave();
+    }
+        
+}
+
+
+function aleatorio (maximo, minimo){
+    return Math.floor(Math.random()*(maximo-minimo+1)) + minimo;
+}
+
+function dibujarMatriz(){
+    for (let i = 0; i < matriz.length; i++) {
+        for (let j = 0; j < matriz.length; j++) {
+            if (matriz[i][j]=='v' || matriz[i][j]=='vb' ){
+                lapiz.drawImage(vaca.imagen,j*DIMENSION,i*DIMENSION);
+            }
+            else if (matriz[i][j]=='c' || matriz[i][j]=='cb') {
+                lapiz.drawImage(cerdo.imagen,j*DIMENSION,i*DIMENSION);
+            }
+        }
+        
+    }
+}
+
+function dibujarVacas(numero){
+    for(i = 1; i<=numero; i++)
+    {
+        lapiz.drawImage(vaca.imagen,aleatorio(5,0)*DIMENSION,aleatorio(5,0)*DIMENSION);
+    }
+}
+
+function dibujarCerdos(numero){
+    for(i = 1; i<=numero; i++)
+    {
+        lapiz.drawImage(cerdo.imagen,aleatorio(5,0)*DIMENSION,aleatorio(5,0)*DIMENSION);
+    }
+}
+
+function dibujarLlave(){
+
+        lapiz.drawImage(llave.imagen,x*DIMENSION,y*DIMENSION);
+    
+}
+
+function movimientos(evento){
+    switch(evento.keyCode){
+        case tecla.LEFT:
+            x=x-1;
+            dibujar();
+            break;
+        case tecla.RIGHT:
+            x=x+1;
+            dibujar();
+            break;
+        case tecla.UP:
+            y=y-1;
+            dibujar();
+            break;
+        case tecla.DOWN:
+            y=y+1;
+            dibujar();
+            break;
+        case tecla.ENTER:
+            if (matriz[y][x] == 'vb' || matriz[y][x] == 'cb') {
+                alert("Juego Ganado");
+                location.reload();
+            }
+            else{
+                numeroIntento = numeroIntento -1;
+                if(numeroIntento==0){
+                    alert('Game over!!!');
+                    location.reload();
+                }
+            }
+            //encontrarNoEnvenenada();
+            break;
+    }
+}
+
+function encontrarNoEnvenenada(){
+    var mensaje="Le quedan ";
+    numeroIntento=numeroIntento-1;
+    mensaje= mensaje.concat(numeroIntento);
+    mensaje= mensaje.concat(" intentos");
+    if (numeroIntento<=0) {
+        if(matriz[y][x]!='v' || matriz[y][x]!='c' ){
+            alert(mensaje);
+        }
+        else   {
+            alert("Animal no envenenado");
+        }
+    }
+    else{
+        alert("Ya no tiene intentos disponibles");
+    }
+}
+
+console.log(fondo);
